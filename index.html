@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>noiseNode!</title>
+  </head>
+  <body>
+    <div>
+    <h3>tempo</h3>
+    </div>
+
+    <p>
+    <label for="soundType">Select a waveform:</label> <select name="soundType" id="soundType">
+        <option value="triangle" selected>Triangle</option>
+        <option value="sine">Sine</option>
+        <option value="square">Square</option>
+        <option value="sawtooth">Sawtooth</option>
+    </select>
+</p>
+<!-- Keyboard placeholder -->
+    <div class="keyboard">
+        <svg id="keySVG"></svg>
+    </div>
+
+    <!-- All of the Node.js APIs are available in this renderer process. -->
+    We are using Node.js <script>document.write(process.versions.node)</script>,
+    Chromium <script>document.write(process.versions.chrome)</script>,
+    and Electron <script>document.write(process.versions.electron)</script>.
+  </body>
+
+  <script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+  </script>
+</html>
