@@ -1,16 +1,31 @@
 var d3 = require('d3');
+var makeSound = require('./sound.js');
+
+
 
 
 console.log('need to make noise happen');
 var audioCtx = new (AudioContext || webkitAudioContext)();
 
-var makeSound = require('./sound.js');
 var Sound = makeSound(audioCtx);
 
+var keysound = require('./keysound.js')
+
+var Key = keysound(Sound);
+
+var noteObj = require('./loadscalefreqs.js');
+
+
+var keyBoardInputMode = "qwerty";
+
+var qwertykeymapper = require('./helpers/qwertys.js');
+
+
+//var noters = noteObj();
 var svg = d3.select('#keySVG')
 
 var width = 520;
-var height = 520;
+var height = 220;
 
 var margin = 20;
 
@@ -19,22 +34,11 @@ var keyboardHeight = 80;
 var keyboardWidth  = width-margin*2;
 
 svg.attr('height', height).attr('width', width)
-   // .attr('fill', 'orange')
 
    // Table of notes with correspending keyboard codes. Frequencies are in hertz.
     // The notes start from middle C
-    var notesByKeyCode = {
-        65: { noteName: 'c4', frequency: 261.6, keyName: 'a' },
-        83: { noteName: 'd4', frequency: 293.7, keyName: 's' },
-        68: { noteName: 'e4', frequency: 329.6, keyName: 'd' },
-        70: { noteName: 'f4', frequency: 349.2, keyName: 'f' },
-        71: { noteName: 'g4', frequency: 392, keyName: 'g' },
-        72: { noteName: 'a5', frequency: 440, keyName: 'h' },
-        74: { noteName: 'b5', frequency: 493.9, keyName: 'j' },
-        75: { noteName: 'c5', frequency: 523.3, keyName: 'k' },
-        76: { noteName: 'd5', frequency: 587.3, keyName: 'l' },
-        186: { noteName: 'e5', frequency: 659.3, keyName: ';' }
-    };
+    var keymaps = qwertykeymapper('C4')
+    console.log('keymaps', keymaps)
 
 
 buildKeyboard();
@@ -51,7 +55,7 @@ function buildKeyboard() {
         .attr('width', width-margin*2)
 
 
-        addKeys(notesByKeyCode);
+        addKeys(noteObj);
 
 
 }
@@ -60,13 +64,67 @@ function buildKeyboard() {
 
 
 function addKeys(notes){
+
+
+
     d3.selectAll('.keys').remove();
+
     var noteKeys = Object.keys(notes);
     var keyboard = d3.select('#keyboardG')
     var keybuff = 8;
-    var keyWidth = keyboardWidth/noteKeys.length  - keybuff*3;
+    var keyWidth = keyboardWidth/10  - keybuff*2;
 
-console.log(noteKeys)
+    if(keyBoardInputMode === 'qwerty'){
+      keyWidth = keyboardWidth/10  - keybuff*3
+    }
+console.log('keymap', keymaps)
+  var baseCo = 0;
+
+
+keyboard.selectAll('.keys')
+    .data(keymaps)
+    .enter()
+    .append('rect')
+    .attr('height', function(d) {
+      return keyboardHeight - keybuff * 4
+    })
+    .attr('width', keyWidth)
+    .attr('fill', function(d, i){
+      if(d.sharp) {
+        return 'yellow'
+      }
+      return 'green'
+    })
+    .attr('y', function(d, i){
+      if(d.sharp){
+        return -4;
+      }
+      return 10;
+    })
+    .attr('x', function(d,i){
+      var bump = 0;
+      if(!d.sharp){
+        baseCo = baseCo + 1;
+      }
+      else {
+        bump = keyWidth/2
+      }
+        return -30 + bump + baseCo * (keyWidth + keybuff) + baseCo *keybuff;
+    })
+    .attr('class', "keys")
+    .attr('id', function(d,i) {
+      return 'key' + d.keyMap;
+    })
+    .attr('sharper', function(d){
+      return d.sharp;
+    })
+    .each(function(d,i){
+      console.log(d)
+      var note = d;
+      keymaps[i].key = Key(d, '', '', d.frequency);
+    })
+
+/*
   //  for( i in notes) {
     keyboard.selectAll('.keys')
         .data(noteKeys)
@@ -86,28 +144,11 @@ console.log(noteKeys)
         .each(function(d,i){
           console.log(d)
           var note = notesByKeyCode[d];
-          note.key = new Key(d, '', '', note.frequency)
+          note.key = Key(d, '', '', note.frequency)
         })
-
+*/
 			 // .attr('id', );
     //}
-}
-
-function Key(keyCode, noteName, keyName, frequency) {
-  //  var keyHTML = document.createElement('div');
-    var keySound = new Sound(frequency, 'triangle');
-
-    /* Cheap way to map key on touch screens */
-  //  keyHTML.setAttribute('data-key', keyCode);
-
-    /* Style the key */
-  //  keyHTML.className = 'key';
-  //  keyHTML.innerHTML = noteName + '<br><span>' + keyName + '</span>';
-
-    return {
-      //  html: keyHTML,
-        sound: keySound
-    };
 }
 
 
@@ -118,9 +159,14 @@ var playNote = function(event) {
 
      var keyCode = event.keyCode || event.target.getAttribute('data-key');
 
-     if(typeof notesByKeyCode[keyCode] !== 'undefined') {
+     console.log(keyCode);
+     var keyobj = keymaps.find(function(d){
+       return d.keyMap === keyCode
+     })
+
+     if(typeof keyobj !== 'undefined') {
          // Pipe sound to output (AKA speakers)
-         notesByKeyCode[keyCode].key.sound.play();
+        keyobj.key.sound.play();
 
          // Highlight key playing
          d3.select('#key' + keyCode)
@@ -131,28 +177,43 @@ var playNote = function(event) {
 
  var endNote = function(event) {
      var keyCode = event.keyCode || event.target.getAttribute('data-key');
+     var keyobj = keymaps.find(function(d){
+       return d.keyMap === keyCode
+     })
 
-     if(typeof notesByKeyCode[keyCode] !== 'undefined') {
+     if(typeof keyobj !== 'undefined') {
          // Kill connection to output
-         notesByKeyCode[keyCode].key.sound.stop();
+         keyobj.key.sound.stop();
 
          // Remove key highlight
-         d3.select('#key' + keyCode)
-          .attr('fill', 'green')
+         var keysel = d3.select('#key' + keyCode);
+         var keyclass = keysel.attr('class');
+
+          keysel.attr('fill', function(d){
+            console.log('inkeyclass', d);
+            if(d.sharp === true) {
+               return 'yellow';
+            }
+            else{
+              return 'green'
+            }
+          })
+
         }
  };
 
+
  var waveFormSelector = document.getElementById('soundType');
 
-
  var setWaveform = function(event) {
-         for(var keyCode in notesByKeyCode) {
-             notesByKeyCode[keyCode].key.sound.osc.type = this.value;
-         }
 
+         for(var keyCode of keymaps) {
+             keyCode.key.sound.osc.type = this.value;
+         }
          // Unfocus selector so value is not accidentally updated again while playing keys
          this.blur();
      };
+
 
      // Check for changes in the waveform selector and update all oscillators with the selected type
 waveFormSelector.addEventListener('change', setWaveform);
