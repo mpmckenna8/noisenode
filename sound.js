@@ -1,9 +1,9 @@
 // export sound function
 function makeSound(audioCtx) {
 
-
-function Sound(frequency, type) {
+  function Sound(frequency, type) {
       this.osc = audioCtx.createOscillator(); // Create oscillator node
+      this.filter = audioCtx.destination;
       this.pressed = false; // flag to indicate if sound is playing
 
       /* Set default configuration for sound */
@@ -12,24 +12,38 @@ function Sound(frequency, type) {
           this.osc.frequency.value = frequency;
       }
 
+      this.amp = audioCtx.createGain()
+      this.amp.gain.value = .2;
+    //  this.amp.connect(this.filter)
+
+      this.osc.connect(this.amp)
       /* Set waveform type. Default is actually 'sine' but triangle sounds better :) */
       this.osc.type = type || 'triangle';
 
       /* Start playing the sound. You won't hear it yet as the oscillator node needs to be
       piped to output (AKA your speakers). */
       this.osc.start(0);
-  };
+    };
+
+  Sound.prototype.setFilter = function(type, freqVal) {
+    // make and set the this.filter here to something more interesting
+    var filly = audioCtx.createBiquadFilter();
+    filly.connect(audioCtx.destination)
+    filly.type = "highpass";
+    filly.frequency.value = 100;
+    this.filter = filly;
+  }
 
   Sound.prototype.play = function() {
       if(!this.pressed) {
           this.pressed = true;
-          this.osc.connect(audioCtx.destination);
+          this.amp.connect(this.filter);
       }
   };
 
   Sound.prototype.stop = function() {
       this.pressed = false;
-      this.osc.disconnect();
+      this.amp.disconnect();
   };
   return Sound;
 }
