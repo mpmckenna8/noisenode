@@ -11,7 +11,7 @@ let constantNode = null;
 
 
 console.log('need to make noise happen');
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)(); //new (AudioContext || webkitAudioContext)();
+var audioCtx = new (AudioContext || webkitAudioContext)();
 
 var Sound = makeSound(audioCtx);
 var keysound = require('./keysound.js')
