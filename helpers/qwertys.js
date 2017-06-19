@@ -26,10 +26,11 @@ var onIndex = -1;
 
 function keyboardmap(startNote) {
   let keymap = [];
+  baseCount = 0;
+  onIndex = -1;
+  //console.log('maping object')
 
-  console.log('maping object')
-
-  console.log(noteObj.findIndex(function(ele) {
+  console.log("notes index", noteObj.findIndex(function(ele) {
   //  console.log(ele.name, startNote)
     return ele.name === startNote;
   }))
@@ -60,7 +61,7 @@ function makefinalNote(onNote) {
 
 
     if( onNote.name[1] == "#") {
-      notey.keyMap = keycode(sharps[baseCount  ])
+      notey.keyMap = keycode(sharps[baseCount])
       notey.keyboardKey = sharps[baseCount];
       notey.sharp = true;
 
