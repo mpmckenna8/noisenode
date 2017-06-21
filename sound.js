@@ -4,6 +4,9 @@ function makeSound(audioCtx) {
   function Sound(frequency, type) {
       this.osc = audioCtx.createOscillator(); // Create oscillator node
       this.filter = audioCtx.destination;
+
+      this.revNode = audioCtx.createConvolver();
+
       this.pressed = false; // flag to indicate if sound is playing
 
       /* Set default configuration for sound */
@@ -13,9 +16,9 @@ function makeSound(audioCtx) {
       }
 
       this.amp = audioCtx.createGain()
-      this.amp.gain.value = .2;
+      this.amp.gain.value = 1.0;
     //  this.amp.connect(this.filter)
-
+      this.envelope = audioCtx.createGain()
       this.osc.connect(this.amp)
       /* Set waveform type. Default is actually 'sine' but triangle sounds better :) */
       this.osc.type = type || 'triangle';
@@ -25,26 +28,65 @@ function makeSound(audioCtx) {
       this.osc.start(0);
     };
 
+
+
+
+  Sound.prototype.setGain = function(gainval) {
+    this.amp.gain.value = gainval;
+  }
+
   Sound.prototype.setFilter = function(type, freqVal) {
     // make and set the this.filter here to something more interesting
     var filly = audioCtx.createBiquadFilter();
     filly.connect(audioCtx.destination)
     filly.type = "highpass";
-    filly.frequency.value = 100;
+    filly.frequency.value = 2000;
     this.filter = filly;
+
   }
+
+
+
 
   Sound.prototype.play = function() {
       if(!this.pressed) {
           this.pressed = true;
-          this.amp.connect(this.filter);
+            var startTime = audioCtx.currentTime
+            var endTime = startTime + 8;
+
+
+            this.envelope.connect(this.filter)
+            this.envelope.gain.value = 0
+
+            // setTargetAtTime arguments are
+    //        var AudioParam = AudioParam.setTargetAtTime(target, startTime, timeConstant)
+            this.envelope.gain.setTargetAtTime(1, startTime, 0.1)
+            this.envelope.gain.setTargetAtTime(0, endTime, 0.5)
+
+          //  this.osc.connect(this.envelope)
+            var vibrato = audioCtx.createGain();
+            vibrato.gain.value = 400;
+            vibrato.connect(this.osc.detune);
+
+            var lfo = audioCtx.createOscillator();
+            lfo.connect(vibrato);
+            lfo.frequency.value = 1;
+
+            lfo.start(startTime);
+            lfo.stop(endTime);
+
+            this.amp.connect(this.envelope);
+
       }
   };
 
   Sound.prototype.stop = function() {
+
       this.pressed = false;
-      this.amp.disconnect();
+      this.envelope.disconnect();
+
   };
+
   return Sound;
 }
 

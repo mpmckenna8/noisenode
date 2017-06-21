@@ -7,8 +7,19 @@ var keyBoarder = require('./helpers/keyboarder.js')
 var playNote = require('./helpers/playnote.js')
 
 var endNote = require('./helpers/stopnote.js')
+let adjustGain = require('./helpers/adjustGain.js')
+
+let volumeControl = document.querySelector("#volumeControl");
+
+
+let context = null;
 let constantNode = null;
 
+context = new (window.AudioContext || window.webkitAudioContext)();
+
+// pretty bummed https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createConstantSource#Browser_compatibility
+// createConstantSource() isn't working
+//var constantSourceNode = AudioContext.createConstantSource()
 
 console.log('need to make noise happen');
 var audioCtx = new (AudioContext || webkitAudioContext)();
@@ -106,7 +117,9 @@ var detectKey = function(event) {
 
 var waveFormSelector = document.getElementById('soundType');
 
+
 var setWaveform = function(event) {
+
     for(var keyCode of keymaps) {
       keyCode.key.sound.osc.type = this.value;
     }
@@ -114,6 +127,14 @@ var setWaveform = function(event) {
     this.blur();
 };
 
+function gainchange(event) {
+  console.log(event.target.value);
+  adjustGain(keymaps, event.target.value)
+}
+
+
+
+  volumeControl.addEventListener("input", gainchange, false);
 
 // Check for changes in the waveform selector and update all oscillators with the selected type
 waveFormSelector.addEventListener('change', setWaveform);

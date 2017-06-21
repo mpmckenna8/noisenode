@@ -17,5 +17,10 @@ http://websynths.com/?source=mitchwellscom_musichtml
 http://websynths.com/#
 
 
+another web synth:
+https://webaudiodemos.appspot.com/midi-synth/index.html
+
+
+
 a drum machine:
 http://www.html5drummachine.com/
