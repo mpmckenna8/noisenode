@@ -13,6 +13,9 @@ and do https://github.com/mmckegg/web-audio-school
 
 
 Using as some inspiration:
+a js library for working with the web audio api:
+https://alemangui.github.io/pizzicato
+
 http://websynths.com/?source=mitchwellscom_musichtml
 http://websynths.com/#
 
