@@ -52,14 +52,11 @@ var keyBoardBuilder = {
 						else {
 							bump = keyWidth/2 + 4
 						}
-
 						transX = -2 + bump + baseCo * (keyWidth + keybuff) + baseCo *keybuff;
-
 
 						return "translate(" + transX + "," + transY + ")"
 					})
 					.attr('class', 'keyg')
-
 
 
 
@@ -96,7 +93,7 @@ var keyBoardBuilder = {
 })
 .each(function(d,i){
 //      	console.log(d)
-	var note = d;
+		var note = d;
 		notes[i].key = Key(d, '', '', d.frequency)
 		// need to setFilter somewhere else with some solid arguments, especially like the time changing ones
 		notes[i].key.sound.setFilter();

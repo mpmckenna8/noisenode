@@ -1,7 +1,7 @@
 var d3 = require('d3');
 
  var endNote = function(keyCode, keyobj) {
-    
+
      if(typeof keyobj !== 'undefined') {
          // Kill connection to output
          keyobj.key.sound.stop();
@@ -11,7 +11,7 @@ var d3 = require('d3');
          var keyclass = keysel.attr('class');
 
           keysel.attr('fill', function(d){
-            console.log('inkeyclass', d);
+      //      console.log('inkeyclass', d);
             if(d.sharp === true) {
                return 'yellow';
             }
