@@ -19,6 +19,7 @@ function makeSound(audioCtx) {
 
       this.amp = audioCtx.createGain()
       this.amp.gain.value = 1.0;
+      this.gainSetting = 1.0
     //  this.amp.connect(this.filter)
       this.envelope = audioCtx.createGain()
 
@@ -30,10 +31,13 @@ function makeSound(audioCtx) {
 
       /* Start playing the sound. You won't hear it yet as the oscillator node needs to be
       piped to output (AKA your speakers). */
-      this.osc.start(0);
+
+      this.lfo;
 
       this.startTime = 0;
       this.endTime = 2;
+
+      this.osc.start(0);
 
     };
 
@@ -42,6 +46,7 @@ function makeSound(audioCtx) {
 
   Sound.prototype.setGain = function(gainval) {
     this.amp.gain.value = gainval;
+    this.gainSetting = gainval;
 
   }
 
@@ -62,7 +67,8 @@ Sound.prototype.setEnvelope = function(startTime, endTime) {
 
   //        var AudioParam = AudioParam.setTargetAtTime(target, startTime, timeConstant)
   this.envelope.gain.setTargetAtTime(1, this.startTime, 0.1)
-  this.envelope.gain.setTargetAtTime(0, this.endTime, 0.5)
+
+  this.envelope.gain.setTargetAtTime(0, this.endTime + 4, 0.2)
 
 }
 
@@ -77,7 +83,7 @@ Sound.prototype.setVibrater = function(vibGain) {
   lfo.frequency.value = 14;
 
   lfo.start(this.startTime);
-  lfo.stop(this.endTime);
+  lfo.stop(this.endTime + 4);
 
 }
 
@@ -85,52 +91,64 @@ Sound.prototype.setVibrater = function(vibGain) {
 
 Sound.prototype.play = function() {
     if(!this.pressed) {
+
+      this.amp.gain.value = this.gainSetting;
+
+
         this.pressed = true;
 
-
           this.startTime = audioCtx.currentTime
-          this.endTime = this.startTime + 8;
+          this.endTime = this.startTime + 2;
 
-        if(document.querySelector('input[value="vibrato"]').checked){
-          this.setEnvelope();
-            /*
-            this.envelope.connect(this.filter)
-            this.envelope.gain.value = 0
+        if( document.querySelector('input[value="vibrato"]').checked ){
 
-            // setTargetAtTime arguments are
-    //        var AudioParam = AudioParam.setTargetAtTime(target, startTime, timeConstant)
-            this.envelope.gain.setTargetAtTime(1, startTime, 0.1)
-            this.envelope.gain.setTargetAtTime(0, endTime, 0.5)
-*/
-          //  this.osc.connect(this.envelope)
+            this.setEnvelope();
+
             var vibrato = audioCtx.createGain();
             vibrato.gain.value = 400;
             vibrato.connect(this.osc.detune);
+            this.lfo = audioCtx.createOscillator();
 
-            var lfo = audioCtx.createOscillator();
-            lfo.connect(vibrato);
-            lfo.frequency.value = 14;
+            this.lfo.connect(vibrato);
+            this.lfo.frequency.value = 14;
 
-            lfo.start(this.startTime);
-            lfo.stop(this.endTime);
+            this.lfo.start(this.startTime);
+            this.lfo.stop(this.endTime + 2);
 
             this.amp.connect(this.envelope);
 
           }
           else{
+
             this.amp.connect(this.filter);
+
           }
 
       }
   };
 
 
+
   Sound.prototype.stop = function() {
       this.pressed = false;
-      this.amp.disconnect();
+    //  this.osc.stop(2)
+  //  this.amp.disconnect();
+    let discon = () => this.amp.disconnect();
+    //this.osc.gain.value = 1;
+
+    this.amp.gain.setTargetAtTime(0, audioCtx.currentTime , .3)
+
+//discon()
+  //  var discon = this.amp.disconnect;
+      setTimeout(function() {
+      //  console.log('want to make it disconnect')
+      discon();
+      //  this.amp.disconnect();
+    }, (1000 ) );
+    //  this.amp.disconnect();
   };
 
   return Sound;
 }
 
-  module.exports = makeSound;
+module.exports = makeSound;
