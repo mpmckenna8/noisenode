@@ -28,6 +28,29 @@
       value="1.0" name="volume" id="volumeControl">
 </div>
 
+<div class="envelopediv">
+  <input type="checkbox" id="envelopeMaster" value="envelope" checked>
+  <label>
+    Envelope
+  </label>
+  <div>
+      <input type="number" min="0.01" max="3.0" step="0.1"
+        value="0.4" name="attack" id="attackControl">
+      <label>
+      Attack constant
+    </label>
+  </div>
+  <div>
+      <input type="number" min="0.01" max="3.0" step="0.1"
+        value="0.4" name="release" id="releaseControl">
+      <label>
+      Release constant
+    </label>
+  </div>
+
+
+</div>
+
   <div class="vibratodiv">
     <input type="checkbox" id="vibratoMaster" value="vibrato">
     <label>

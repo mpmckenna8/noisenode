@@ -12,8 +12,9 @@ so like between b and c there will be no sharp
 // a function which takes a starting note for the base keys and
 // creates a nice keyboard mapping to notes obj for using in making noise
 var keycode = require('keycode');
-
 var noteObj = require('../loadscalefreqs.js');
+
+
 var baseKeys = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'];
 
 var sharps = ['q',  'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
@@ -47,7 +48,7 @@ function keyboardmap(startNote) {
       finote = makefinalNote(finote);
       keymap.push(finote)
 
-      console.log(baseCount)
+    //  console.log(baseCount)
     //    baseCount = baseCount + 1;
     }
 
@@ -59,8 +60,7 @@ function keyboardmap(startNote) {
 function makefinalNote(onNote) {
   var notey = onNote;
 
-
-    if( onNote.name[1] == "#") {
+    if( onNote.name[1] == "#" ) {
       notey.keyMap = keycode(sharps[baseCount])
       notey.keyboardKey = sharps[baseCount];
       notey.sharp = true;
@@ -72,7 +72,6 @@ function makefinalNote(onNote) {
       notey.sharp = false;
       baseCount = baseCount + 1;
     }
-
   keyCount = keyCount + 1;
   onIndex = onIndex + 1;
   return notey

@@ -4,7 +4,6 @@ var keysound = require('../keysound.js')
 
 //var Key = keysound(Sound);
 
-
 var keyBoardBuilder = {
 	addKeyboard: function(margin, height, width, keyboardHeight ) {
 
@@ -21,7 +20,7 @@ var keyBoardBuilder = {
 	refreshKeys: function (notes, keyboardWidth, keyboardHeight, keyBoardInputMode, audioCtx){
 
 		var Sound = makeSound(audioCtx);
-  		var Key = keysound(Sound);
+  	var Key = keysound(Sound);
 
 
 
@@ -35,7 +34,7 @@ var keyBoardBuilder = {
       		keyWidth = keyboardWidth/10  - keybuff*3
     	}
 
-   	 console.log('keymaping', notes)
+   	 console.log('keymaping in keyboarder.js, notes=', notes)
     	var baseCo = 0;
 
     	var keygs = keyboard.selectAll('.keys')
@@ -57,8 +56,6 @@ var keyBoardBuilder = {
 						return "translate(" + transX + "," + transY + ")"
 					})
 					.attr('class', 'keyg')
-
-
 
 		keygs.append('rect')
 		.attr('height', function(d) {

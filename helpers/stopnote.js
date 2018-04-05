@@ -5,6 +5,7 @@ var d3 = require('d3');
      if(typeof keyobj !== 'undefined') {
          // Kill connection to output
          keyobj.key.sound.stop();
+      //   keyobj.key.sound.disconnect()
 
          // Remove key highlight
          var keysel = d3.select('#key' + keyCode);
