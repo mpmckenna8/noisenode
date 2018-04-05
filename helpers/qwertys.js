@@ -44,27 +44,21 @@ function keyboardmap(startNote) {
 
     while( baseCount < baseKeys.length){
       var finote = noteObj[onIndex];
-
       finote = makefinalNote(finote);
       keymap.push(finote)
-
     //  console.log(baseCount)
     //    baseCount = baseCount + 1;
     }
-
   return keymap;
-
 }
 
 
 function makefinalNote(onNote) {
   var notey = onNote;
-
     if( onNote.name[1] == "#" ) {
       notey.keyMap = keycode(sharps[baseCount])
       notey.keyboardKey = sharps[baseCount];
       notey.sharp = true;
-
     }
     else{
       notey.keyMap = keycode(baseKeys[baseCount]);

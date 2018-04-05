@@ -33,9 +33,9 @@ function hookUpMIDIInput() {
 
 // to log midi devices
 console.log('connected midi devices: ')
-  for( q of inputs ) {
-    console.log(q);
-   }
+//  for( q of inputs ) {
+//    console.log(q);
+//   }
 
 
   for ( var input = inputs.next(); input && !input.done; input = inputs.next()) {
@@ -43,9 +43,10 @@ console.log('connected midi devices: ')
       haveAtLeastOneDevice = true;
     }
     var badtime = document.getElementById("badtime");
-    if (badtime)
+    if (badtime) {
       badtime.style.visibility = haveAtLeastOneDevice ?
         "hidden" : "visible";
+      }
 }
 
 function onMIDIInit(midi) {
@@ -77,7 +78,7 @@ function MIDIMessageEventHandler(event) {
     case 0x80:
         console.log('it off ernan', event, event.data[0], 'note code = ', event.data[1])
 
-      //noteOff(event.data[1]);
+      noteOff(event.data[1]);
       return;
   }
 }
@@ -89,20 +90,35 @@ var noteObj = require('./loadscalefreqs.js');
 let Sound = makeSound(audioCtx );
 
 function noteOn(noteNumber) {
-      var keyobj = keymaps.find(function(d){
-          return (d.frequency - frequencyFromNoteNumber(noteNumber) ) < .24;
-        })
+
         // new sounds
-        let sound = Sound(frequencyFromNoteNumber(noteNumber), configs.waveForm)
-         //{  noteNumber: makeSound(frequencyFromNoteNumber(noteNumber), 'triangle')}
         let freq = frequencyFromNoteNumber(noteNumber);
+
+        let sound =  new Sound(freq, configs.waveForm)
+         //{  noteNumber: makeSound(frequencyFromNoteNumber(noteNumber), 'triangle')}
+
+
         // here I should be able to get this
-      console.log('new note on', noteNumber, freq, keyobj)
+      console.log('new note on', noteNumber, freq, sound)
+      sound.play()
+      // add sound to configsthing:
+      configs.playing.midi.push(sound);
+      console.log('pushed sound')
 }
 
 // this should get called on midi key up but doesn't currently do anythign.
 function noteOff(noteNumber) {
 // need to turn the midi note note Off
+  console.log('need to turnoff notes, :', configs.playing.midi);
+
+  for(let o = 0; o<configs.playing.midi.length; o++) {
+    if(configs.playing.midi[o].freq == frequencyFromNoteNumber( noteNumber) ) {
+      console.log('need to turn off o', o)
+      configs.playing.midi[o].stop();
+      configs.playing.midi.splice(o,1);
+    }
+  }
+
 }
 
 // I think it's very possible just to have both be going at the same time
@@ -128,7 +144,6 @@ var controlKeys = {
 }
 
 
-
 var detectKey = function(event) {
   var keyCode = event.keyCode || event.target.getAttribute('data-key');
 
@@ -140,7 +155,6 @@ var detectKey = function(event) {
 
     // if it's a playable note play it
    if(typeof keyobj !== 'undefined') {
-
      if(keyobj.key.sound.pressed === false) {
         configs.playing.qwerty.push(keyobj);
         playNote(keyCode, keyobj)
@@ -182,7 +196,6 @@ var setWaveform = function(event) {
     configs.SetWaveForm(this.value)
     this.blur();
 };
-
 waveFormSelector.addEventListener('change', setWaveform);
 
 function gainchange(event) {
@@ -202,11 +215,9 @@ function attackChange(event) {
 }
 
 
-
 configs.volumeControl.addEventListener("input", gainchange, false);
 configs.attackInput.addEventListener("input", attackChange, false);
 configs.releaseInput.addEventListener("input", configs.ReleaseChange, false);
-
 
 
 // listeners to play notes on key presses
@@ -226,10 +237,7 @@ window.addEventListener('keyup', function(event) {
     return false;
   })
   if(keyobj) {
-
     configs.playing.qwerty.splice(playIndex, 1);
     endNote(keyCode, keyobj);
-
   }
-
 });
