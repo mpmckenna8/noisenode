@@ -11,6 +11,8 @@ let configs = require('./helpers/configs.js')
 let context = null;
 let constantNode = null;
 
+let frequencyFromNoteNumber = require('./helpers/frequencyFromNoteNumber')
+
 context = new (window.AudioContext || window.webkitAudioContext)();
 
 let midiAccess;
@@ -30,9 +32,10 @@ function hookUpMIDIInput() {
     var inputs=midiAccess.inputs.values();
 
 // to log midi devices
-  //  for( q of inputs ) {
-    //  console.log(q);
-  //  }
+console.log('connected midi devices: ')
+  for( q of inputs ) {
+    console.log(q);
+   }
 
 
   for ( var input = inputs.next(); input && !input.done; input = inputs.next()) {
@@ -62,6 +65,8 @@ function MIDIMessageEventHandler(event) {
   switch ( event.data[0] & 0xf0 ) {
     case 0x90:
       if (event.data[2]!=0 ) {  // if velocity != 0, this is a note-on message
+
+        // basically think I need to make a Sound thing then add it
       noteOn(event.data[1]);
 
       console.log('it on note', event, event.data[1])
@@ -77,51 +82,33 @@ function MIDIMessageEventHandler(event) {
   }
 }
 
-
-// I think this is to do from the midi value but not sure
-function frequencyFromNoteNumber( note ) {
-  return 440 * Math.pow(2,(note-69)/12);
-}
-
-console.log('need to make noise happen');
 var audioCtx = new (AudioContext || webkitAudioContext)();
-
-var Sound = makeSound(audioCtx);
-var keysound = require('./keysound.js')
-
-
-var Key = keysound(Sound);
 
 var noteObj = require('./loadscalefreqs.js');
 
+let Sound = makeSound(audioCtx );
 
 function noteOn(noteNumber) {
-
       var keyobj = keymaps.find(function(d){
           return (d.frequency - frequencyFromNoteNumber(noteNumber) ) < .24;
-        }) //{  noteNumber: makeSound(frequencyFromNoteNumber(noteNumber), 'triangle')}
-
+        })
+        // new sounds
+        let sound = Sound(frequencyFromNoteNumber(noteNumber), configs.waveForm)
+         //{  noteNumber: makeSound(frequencyFromNoteNumber(noteNumber), 'triangle')}
         let freq = frequencyFromNoteNumber(noteNumber);
-
         // here I should be able to get this
-      console.log('new note on', noteNumber, freq, keyobj
-    )
-
-		}
+      console.log('new note on', noteNumber, freq, keyobj)
+}
 
 // this should get called on midi key up but doesn't currently do anythign.
 function noteOff(noteNumber) {
 // need to turn the midi note note Off
-
 }
 
+// I think it's very possible just to have both be going at the same time
 var keyBoardInputMode = "qwerty";
 var qwertykeymapper = require('./helpers/qwertys.js');
 
-var keyboardHeight = 80;
-
-var onNote = "G#4";
-var stepsInOctave = 12;
 
 configs.SetUpSvg()
 configs.svgopts.SetkeyboardWidth();
@@ -129,12 +116,11 @@ configs.svgopts.SetkeyboardWidth();
  // Table of notes with correspending keyboard codes. Frequencies are in hertz.
     // The notes start from middle C
  // right now only using qwerty, but want to allow mapping from web midi devices too!
-var keymaps = qwertykeymapper(onNote);
+var keymaps = qwertykeymapper(configs.svgopts.onNote);
 console.log('keymaps', keymaps)
-// doesn't work currently
+
+
 configs.BuildKeyboard(keyBoarder, keymaps, keyBoardInputMode, audioCtx);
-
-
 
 var controlKeys = {
   "shiftDownStep": ",",
@@ -146,18 +132,15 @@ var controlKeys = {
 var detectKey = function(event) {
   var keyCode = event.keyCode || event.target.getAttribute('data-key');
 
-
     var keyobj = keymaps.find(function(d){
       return d.keyMap === keyCode;
     })
 
   console.log('keyobj = ', keyobj)
-  var playnote = {}
-
-  playnote = { origfreq: frequencyFromNoteNumber(keyCode), key:  Key(keyCode, '', '', frequencyFromNoteNumber(keyCode)) }
 
     // if it's a playable note play it
    if(typeof keyobj !== 'undefined') {
+
      if(keyobj.key.sound.pressed === false) {
         configs.playing.qwerty.push(keyobj);
         playNote(keyCode, keyobj)
@@ -166,36 +149,41 @@ var detectKey = function(event) {
    // if it's a , then step down
   else if( keyCode === Keycode(controlKeys.shiftDownStep)){
     var onIndex = noteObj.findIndex(function(ele) {
-      return ele.name === onNote;
+      return ele.name === configs.svgopts.onNote;
     })
-    onNote = noteObj[ onIndex  -  1 ].name
-    keymaps = qwertykeymapper(onNote);
-    keyBoarder.refreshKeys(keymaps, configs.svgopts.keyboardWidth, keyboardHeight, keyBoardInputMode,audioCtx);
+
+    configs.svgopts.onNote = noteObj[ onIndex  -  1 ].name
+    keymaps = qwertykeymapper(configs.svgopts.onNote);
+    keyBoarder.refreshKeys(keymaps, configs.svgopts.keyboardWidth, configs.svgopts.keyboardHeight, keyBoardInputMode,audioCtx);
   }
   // it it's a . then step up and redo the keyboard
   else if ( keyCode == Keycode(controlKeys.shiftUpStep) ) {
     console.log('move up step')
     var onIndex = noteObj.findIndex(function(ele) {
-      return ele.name === onNote;
+      return ele.name === configs.svgopts.onNote;
     })
 
-    onNote = noteObj[ onIndex  +  1 ].name;
-  //  console.log('onnote, ', onNote)
-    keymaps = qwertykeymapper(onNote);
-    keyBoarder.refreshKeys(keymaps, configs.svgopts.keyboardWidth, keyboardHeight, keyBoardInputMode,audioCtx);
+    configs.svgopts.onNote = noteObj[ onIndex  +  1 ].name;
+    keymaps = qwertykeymapper(configs.svgopts.onNote);
+    keyBoarder.refreshKeys(keymaps, configs.svgopts.keyboardWidth, configs.svgopts.keyboardHeight, keyBoardInputMode,audioCtx);
   }
 }
 
-var waveFormSelector = document.getElementById('soundType');
 
+var waveFormSelector = document.getElementById('soundType');
+// Check for changes in the waveform selector and update all oscillators with the selected type
 var setWaveform = function(event) {
+  console.log('waveformchanged')
     for(var keyobjec of keymaps) {
-      console.log(keyobjec)
+      console.log('changing waveform', keyobjec)
       keyobjec.key.sound.waver = this.value;
     //  keyobjec.key.sound.osc.type = this.value;
     }
+    configs.SetWaveForm(this.value)
     this.blur();
 };
+
+waveFormSelector.addEventListener('change', setWaveform);
 
 function gainchange(event) {
   console.log('adjusting the gain', event.target.value);
@@ -203,8 +191,8 @@ function gainchange(event) {
 }
 
 function attackChange(event) {
-  console.log(event)
-  configs.setAttackValue(event.target.value);
+  console.log('attack change, event=', event)
+  configs.SetAttackValue(event.target.value);
 
   for(var keyobjec of keymaps) {
     console.log(keyobjec)
@@ -213,18 +201,18 @@ function attackChange(event) {
   }
 }
 
-function releaseChange(event) {
-  configs.releaseValue = event.target.value;
-}
+
 
 configs.volumeControl.addEventListener("input", gainchange, false);
 configs.attackInput.addEventListener("input", attackChange, false);
-configs.releaseInput.addEventListener("input", releaseChange, false);
-// Check for changes in the waveform selector and update all oscillators with the selected type
-waveFormSelector.addEventListener('change', setWaveform);
+configs.releaseInput.addEventListener("input", configs.ReleaseChange, false);
+
+
 
 // listeners to play notes on key presses
 window.addEventListener('keydown', detectKey);
+
+
 window.addEventListener('keyup', function(event) {
   //  console.log(keymaps)
   var keyCode = event.keyCode || event.target.getAttribute('data-key');
@@ -237,10 +225,11 @@ window.addEventListener('keyup', function(event) {
     }
     return false;
   })
-
   if(keyobj) {
+
     configs.playing.qwerty.splice(playIndex, 1);
+    endNote(keyCode, keyobj);
+
   }
 
-  endNote(keyCode, keyobj);
 });

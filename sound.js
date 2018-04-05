@@ -5,17 +5,15 @@ function makeSound(audioCtx) {
 
       this.osc; //= audioCtx.createOscillator(); // Create oscillator node
       this.filter = audioCtx.destination;
-
       this.revNode = audioCtx.createConvolver();
-
       this.pressed = false; // flag to indicate if sound is playing
       this.startTime = 0;
       this.endTime = 2;
       this.freq = 440;
-
       this.release = document.querySelector("#releaseControl").value;
+
       console.log('relasein , ', this.release)
-      console.log('attackin , ', document.querySelector("#attackControl").value)
+  //    console.log('attackin , ', document.querySelector("#attackControl").value)
       this.attack = document.querySelector("#attackControl").value;
 
       /* Set default configuration for sound */
@@ -23,7 +21,6 @@ function makeSound(audioCtx) {
           /* Set frequency. If it's not set, the default is used (440Hz) */
     //      this.osc.frequency.value = frequency;
           this.freq = frequency;
-
       }
 
       this.amp = audioCtx.createGain()
@@ -45,9 +42,6 @@ function makeSound(audioCtx) {
 
       this.startTime = 0;
       this.endTime = 2;
-
-    //  this.osc.start(0);
-
     };
 
 
@@ -91,6 +85,7 @@ Sound.prototype.setVibrater = function(vibGain) {
 
   lfo.start(this.startTime);
   lfo.stop(this.endTime + 2);
+
 }
 
 
@@ -122,10 +117,8 @@ Sound.prototype.play = function() {
           this.setEnvelope();
 
           if( document.querySelector('input[value="vibrato"]').checked ){
-
-
               var vibrato = audioCtx.createGain();
-              vibrato.gain.value = 400;
+              vibrato.gain.value = 50;
               vibrato.connect(this.osc.detune);
               this.lfo = audioCtx.createOscillator();
 
@@ -139,55 +132,41 @@ Sound.prototype.play = function() {
 
             }
             else{
-
-              console.log('simplesplay')
+              console.log('simplesplay with envelope but no vibrato')
               this.amp.connect(this.envelope);
-
             }
-
 
         }
         else {
+          if( document.querySelector('input[value="vibrato"]').checked ){
+              var vibrato = audioCtx.createGain();
+              vibrato.gain.value = 400;
+              vibrato.connect(this.osc.detune);
+              this.lfo = audioCtx.createOscillator();
 
-        if( document.querySelector('input[value="vibrato"]').checked ){
+              this.lfo.connect(vibrato);
+              this.lfo.frequency.value = 14;
 
+              this.lfo.start(this.startTime);
+              this.lfo.stop(this.endTime + 2);
 
-            var vibrato = audioCtx.createGain();
-            vibrato.gain.value = 400;
-            vibrato.connect(this.osc.detune);
-            this.lfo = audioCtx.createOscillator();
-
-            this.lfo.connect(vibrato);
-            this.lfo.frequency.value = 14;
-
-            this.lfo.start(this.startTime);
-            this.lfo.stop(this.endTime + 2);
-
-            this.amp.connect(this.filter);
-
-          }
+              this.amp.connect(this.filter);
+            }
           else{
-
             console.log('simplesplay')
             this.amp.connect(this.filter);
-
           }
         }
-
       }
   };
 
 
-
   Sound.prototype.stop = function() {
     this.pressed = false;
-    //  this.osc.stop(2)
-  //  this.amp.disconnect();
 
   //  let discon = () => this.amp.disconnect(audioCtx.currentTime+3);
-    //this.osc.gain.value = 1;
+  //this.osc.gain.value = 1;
     if( document.querySelector('input[value="envelope"]').checked ) {
-
       this.envelope.gain.cancelScheduledValues(0);
       this.amp.gain.cancelScheduledValues(0);
 // this will make it immediately stop  this.amp.gain.value = 0;
@@ -197,20 +176,18 @@ Sound.prototype.play = function() {
       this.osc.stop( audioCtx.currentTime + 10 * this.release )
 
       let thisosc = this.osc;
-      window.setTimeout(function() {
+      // disconnect the oscillator after 5 seconds
 
-        console.log('disconnecting oscillator')
-        thisosc.disconnect();
+    }
+    else {
+        this.osc.stop( audioCtx.currentTime);
+    }
 
-      }, 5000)
-  }
-  else {
-      this.osc.stop( audioCtx.currentTime);
-  }
-
-
+    window.setTimeout(()=>{
+      console.log('disconnecting oscillator')
+      this.osc.disconnect();
+    }, 5000)
   };
-
   return Sound;
 }
 

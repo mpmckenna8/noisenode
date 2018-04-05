@@ -2,7 +2,6 @@ var d3 = require('d3');
 var makeSound = require('../sound.js');
 var keysound = require('../keysound.js')
 
-//var Key = keysound(Sound);
 
 var keyBoardBuilder = {
 	addKeyboard: function(margin, height, width, keyboardHeight ) {
@@ -17,10 +16,10 @@ var keyBoardBuilder = {
         	.attr('width', width-margin*2)
 
 	},
-	refreshKeys: function (notes, keyboardWidth, keyboardHeight, keyBoardInputMode, audioCtx){
+	refreshKeys: function (notes, keyboardWidth, keyboardHeight, keyBoardInputMode, audioCtx, waveform="triangle"){
 
 		var Sound = makeSound(audioCtx);
-  	var Key = keysound(Sound);
+  	var Key = keysound(Sound, waveform);
 
 
 
@@ -94,6 +93,7 @@ var keyBoardBuilder = {
 		notes[i].key = Key(d, '', '', d.frequency)
 		// need to setFilter somewhere else with some solid arguments, especially like the time changing ones
 		notes[i].key.sound.setFilter();
+
 })
 
 
